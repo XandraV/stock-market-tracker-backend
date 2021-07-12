@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, login, addSymbol } from "../controllers/user.js";
+import { registerUser, login, addSymbol, addWatchList } from "../controllers/user.js";
 import auth from "../middleware/auth.js";
 
 const router = express.Router();
@@ -10,6 +10,8 @@ router.post("/register", registerUser);
 
 router.post("/login", login);
 
-router.post("/add-stocks", auth, addSymbol);
+router.post("/add-symbol", auth, addSymbol);
+
+router.post("/add-watchlist", auth, addWatchList);
 
 export default router;

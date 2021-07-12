@@ -16,7 +16,7 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password,
-      stocks: [],
+      watchLists: [{ name: "My First Watchlist", symbols: ['goog'] }],
     });
 
     const salt = await bcrypt.genSalt(12);
@@ -58,8 +58,31 @@ export const login = async (req, res) => {
 };
 
 export const addSymbol = async (req, res) => {
-  const { email, newStock } = req.body;
+  const email = req.userEmail;
+  const { watchListName, symbol } = req.body;
+  try {
+    const existingUser = await User.findOne({ email });
+    if (!existingUser)
+      return res.status(404).json({ message: "User doesn't exist." });
 
+    console.log(existingUser);
+    const updatedUser = await User.updateOne(
+      { _id: existingUser.id },
+      { $push: { "watchLists.$[elem].symbols": symbol } },
+      { arrayFilters: [{ "elem.name": watchListName }] }
+    );
+    console.log(updatedUser);
+
+    res.status(200).json({ result: updatedUser });
+  } catch (err) {
+    res.status(500).json("Something went wrong.");
+  }
+};
+
+export const addWatchList = async (req, res) => {
+  const { newWatchList } = req.body;
+  const email = req.userEmail;
+  console.log(email, newWatchList);
   try {
     const existingUser = await User.findOne({ email });
     if (!existingUser)
@@ -67,12 +90,11 @@ export const addSymbol = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       existingUser.id,
-      { $push: { stocks: newStock } },
+      { $push: { watchLists: newWatchList } },
       {
         new: true,
       }
     );
-    console.log(updatedUser);
 
     res.status(200).json({ result: updatedUser });
   } catch (err) {
